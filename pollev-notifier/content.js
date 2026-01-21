@@ -3,6 +3,15 @@
 
 let lastPollQuestion = null;
 let checkInterval = null;
+let isInitialized = false;
+
+// Load the last seen poll from storage when script starts
+async function initialize() {
+  const result = await chrome.storage.local.get(['lastSeenPoll']);
+  lastPollQuestion = result.lastSeenPoll || null;
+  isInitialized = true;
+  console.log("Initialized. Last seen poll:", lastPollQuestion);
+}
 
 function getPollQuestion() {
   // Try to extract the poll question/title
@@ -46,14 +55,24 @@ function hasClickableOptions() {
   return false;
 }
 
-function checkPollStatus() {
+async function updateLastSeenPoll(question) {
+  lastPollQuestion = question;
+  await chrome.storage.local.set({ lastSeenPoll: question });
+}
+
+async function checkPollStatus() {
+  // Wait for initialization to complete
+  if (!isInitialized) {
+    return;
+  }
+  
   const currentQuestion = getPollQuestion();
   const waiting = isWaitingScreen();
   const closed = isPollClosed();
   
   // If we're on the waiting screen, clear our stored question
   if (waiting) {
-    lastPollQuestion = null;
+    await updateLastSeenPoll(null);
     console.log("Waiting screen detected");
     return;
   }
@@ -65,7 +84,7 @@ function checkPollStatus() {
   
   // If this is a closed poll (already answered), update our memory but don't notify
   if (closed) {
-    lastPollQuestion = currentQuestion;
+    await updateLastSeenPoll(currentQuestion);
     console.log("Closed poll detected:", currentQuestion);
     return;
   }
@@ -85,7 +104,7 @@ function checkPollStatus() {
     });
     
     // Update our memory
-    lastPollQuestion = currentQuestion;
+    await updateLastSeenPoll(currentQuestion);
   } else if (currentQuestion === lastPollQuestion) {
     // Same poll as before, no action needed
   } else if (!hasClickable) {
@@ -94,20 +113,23 @@ function checkPollStatus() {
   }
 }
 
-// Initial check after page loads
-setTimeout(checkPollStatus, 2000);
-
-// Set up periodic checking every 3 seconds (more frequent for reliability)
-checkInterval = setInterval(checkPollStatus, 3000);
-
-// Also monitor DOM changes for faster detection
-const observer = new MutationObserver(() => {
-  checkPollStatus();
+// Initialize by loading last seen poll from storage
+initialize().then(() => {
+  // Initial check after page loads and initialization completes
+  setTimeout(checkPollStatus, 2000);
+  
+  // Set up periodic checking every 3 seconds (more frequent for reliability)
+  checkInterval = setInterval(checkPollStatus, 3000);
+  
+  // Also monitor DOM changes for faster detection
+  const observer = new MutationObserver(() => {
+    checkPollStatus();
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+  
+  console.log("PollEv Notifier: Monitoring for NEW active polls...");
 });
-
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
-
-console.log("PollEv Notifier: Monitoring for NEW active polls...");
