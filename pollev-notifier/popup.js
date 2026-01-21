@@ -32,7 +32,7 @@ document.getElementById('testButton').addEventListener('click', async () => {
   chrome.notifications.create({
     type: "basic",
     iconUrl: "icon128.png",
-    title: "🚨 Test Notification",
+    title: "Test Notification",
     message: "This is a test poll notification!",
     priority: 2
   });
@@ -48,7 +48,7 @@ document.getElementById('testButton').addEventListener('click', async () => {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Title": "🚨 Test Notification",
+          "Title": "Test Notification",
           "Priority": "high",
           "Tags": "white_check_mark"
         },

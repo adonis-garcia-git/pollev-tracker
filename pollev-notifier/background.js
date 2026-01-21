@@ -43,7 +43,7 @@ async function sendPhoneNotification(data) {
     await fetch(url, {
       method: "POST",
       headers: {
-        "Title": "🚨 PollEv Active!",
+        "Title": "PollEv Active!",
         "Priority": "high",
         "Tags": "warning,ballot_box",
         "Actions": `view, Open Poll, ${data.url}`
