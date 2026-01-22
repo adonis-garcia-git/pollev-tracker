@@ -4,13 +4,40 @@
 let lastPollQuestion = null;
 let checkInterval = null;
 let isInitialized = false;
+let configuredUrl = null;
 
-// Load the last seen poll from storage when script starts
+// Load the last seen poll and configured username from storage when script starts
 async function initialize() {
-  const result = await chrome.storage.local.get(['lastSeenPoll']);
-  lastPollQuestion = result.lastSeenPoll || null;
+  const result = await chrome.storage.sync.get(['pollEvUsername']);
+  const localResult = await chrome.storage.local.get(['lastSeenPoll']);
+  
+  const username = result.pollEvUsername;
+  lastPollQuestion = localResult.lastSeenPoll || null;
+  
+  // Check if username is configured
+  if (!username) {
+    console.log("PollEv Notifier: No username configured. Please configure in extension settings.");
+    isInitialized = false;
+    return false;
+  }
+  
+  // Build the full URL from username
+  configuredUrl = `https://pollev.com/${username}`;
   isInitialized = true;
+  
+  // Check if we're on the correct page
+  const currentUrl = window.location.href;
+  const isCorrectPage = currentUrl.startsWith(configuredUrl) || 
+                        currentUrl.includes(`pollev.com/${username}`);
+  
+  if (!isCorrectPage) {
+    console.log(`PollEv Notifier: Not monitoring this page. Configured for: ${configuredUrl}`);
+    return false;
+  }
+  
   console.log("Initialized. Last seen poll:", lastPollQuestion);
+  console.log("Monitoring page:", configuredUrl);
+  return true;
 }
 
 function getPollQuestion() {
@@ -31,9 +58,9 @@ function getPollQuestion() {
 }
 
 function isWaitingScreen() {
-  // Check for the waiting screen message
-  return document.body.innerText.includes("Waiting for gsandoval's presentation to begin") ||
-         document.body.innerText.includes("Waiting for") && document.body.innerText.includes("presentation to begin");
+  // Check for the waiting screen message - works for any pollev.com/username
+  return document.body.innerText.includes("Waiting for") && 
+         document.body.innerText.includes("presentation to begin");
 }
 
 function isPollClosed() {
@@ -114,7 +141,12 @@ async function checkPollStatus() {
 }
 
 // Initialize by loading last seen poll from storage
-initialize().then(() => {
+initialize().then((shouldMonitor) => {
+  if (shouldMonitor === false) {
+    console.log("PollEv Notifier: Skipping this page");
+    return;
+  }
+  
   // Initial check after page loads and initialization completes
   setTimeout(checkPollStatus, 2000);
   

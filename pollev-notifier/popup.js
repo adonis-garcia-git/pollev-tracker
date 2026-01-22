@@ -2,16 +2,37 @@
 
 // Load saved settings when popup opens
 document.addEventListener('DOMContentLoaded', async () => {
-  const result = await chrome.storage.sync.get(['ntfyTopic', 'ntfyEnabled']);
+  const result = await chrome.storage.sync.get(['ntfyTopic', 'ntfyEnabled', 'pollEvUsername']);
   
+  document.getElementById('pollEvUsername').value = result.pollEvUsername || '';
   document.getElementById('ntfyTopic').value = result.ntfyTopic || '';
   document.getElementById('ntfyEnabled').checked = result.ntfyEnabled || false;
 });
 
 // Save settings
 document.getElementById('saveButton').addEventListener('click', async () => {
+  const pollEvUsername = document.getElementById('pollEvUsername').value.trim();
   const ntfyTopic = document.getElementById('ntfyTopic').value.trim();
   const ntfyEnabled = document.getElementById('ntfyEnabled').checked;
+  
+  // Validate PollEv username
+  if (!pollEvUsername) {
+    showStatus('Please enter a PollEv username', 'error');
+    return;
+  }
+  
+  // Clean username - remove any url parts if user pasted full URL
+  let cleanUsername = pollEvUsername
+    .replace('https://', '')
+    .replace('http://', '')
+    .replace('pollev.com/', '')
+    .replace(/\/$/, ''); // remove trailing slash
+  
+  // Validate cleaned username
+  if (!cleanUsername || cleanUsername.includes('/') || cleanUsername.includes(' ')) {
+    showStatus('Invalid username. Enter only the username (e.g., gsandoval)', 'error');
+    return;
+  }
   
   if (ntfyEnabled && !ntfyTopic) {
     showStatus('Please enter a topic name', 'error');
@@ -19,11 +40,12 @@ document.getElementById('saveButton').addEventListener('click', async () => {
   }
   
   await chrome.storage.sync.set({
+    pollEvUsername: cleanUsername,
     ntfyTopic: ntfyTopic,
     ntfyEnabled: ntfyEnabled
   });
   
-  showStatus('Settings saved successfully!', 'success');
+  showStatus('Settings saved! Please refresh your PollEv tab.', 'success');
 });
 
 // Test notification

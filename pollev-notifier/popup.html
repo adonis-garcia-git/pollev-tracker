@@ -116,10 +116,22 @@
     .test-button:hover {
       background: #218838;
     }
+    
+    .hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
   <h2>📢 PollEv Notifier</h2>
+  
+  <div class="section">
+    <label for="pollEvUsername">PollEv Username:</label>
+    <input type="text" id="pollEvUsername" placeholder="e.g., gsandoval" />
+    <div class="hint">Enter the username from pollev.com/<strong>username</strong></div>
+  </div>
   
   <div class="section">
     <div class="checkbox-container">
@@ -141,13 +153,14 @@
   <div class="info">
     <strong>Setup Instructions:</strong>
     <ol>
+      <li>Enter your PollEv username (the part after pollev.com/)</li>
       <li>Install the <strong>Ntfy app</strong> on your phone (<a href="https://ntfy.sh" target="_blank">ntfy.sh</a>)</li>
       <li>Create a unique topic name (e.g., "pollev_alerts_yourname123")</li>
       <li>Subscribe to that topic in the Ntfy app</li>
       <li>Enter the same topic name above and enable notifications</li>
       <li>Keep the PollEv tab open during class</li>
     </ol>
-    The extension checks every 5 seconds for new polls.
+    The extension checks every 3 seconds for new polls.
   </div>
   
   <script src="popup.js"></script>

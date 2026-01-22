@@ -58,14 +58,27 @@ async function sendPhoneNotification(data) {
 }
 
 // Handle notification clicks
-chrome.notifications.onClicked.addListener((notificationId) => {
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  // Get the configured username
+  const result = await chrome.storage.sync.get(['pollEvUsername']);
+  const username = result.pollEvUsername;
+  
+  if (!username) {
+    console.log("No username configured");
+    return;
+  }
+  
+  const pollEvUrl = `https://pollev.com/${username}`;
+  
   // Open the PollEv tab or focus it if already open
-  chrome.tabs.query({ url: "https://pollev.com/*" }, (tabs) => {
+  chrome.tabs.query({ url: pollEvUrl + "*" }, (tabs) => {
     if (tabs.length > 0) {
+      // Tab exists, focus it
       chrome.tabs.update(tabs[0].id, { active: true });
       chrome.windows.update(tabs[0].windowId, { focused: true });
     } else {
-      chrome.tabs.create({ url: "https://pollev.com/gsandoval" });
+      // Tab doesn't exist, open it
+      chrome.tabs.create({ url: pollEvUrl });
     }
   });
 });
