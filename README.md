@@ -3,9 +3,9 @@
 Never miss attendance again.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue)
-![Version](https://img.shields.io/badge/version-1.4-green)
+![Version](https://img.shields.io/badge/version-1.5-green)
 
-Monitors PollEv for new polls and notifies your laptop + phone instantly.
+A modern Chrome extension that monitors PollEv for new polls and notifies your laptop + phone instantly. Features a clean, minimal UI with iOS-style toggles, pill-shaped day selectors, and toast notifications.
 
 ## Install
 
@@ -31,13 +31,23 @@ Monitors PollEv for new polls and notifies your laptop + phone instantly.
 
 ## Configuration
 
-Click the extension icon to set up:
+Click the extension icon to open the modern, card-based settings interface:
+
+### UI Features
+- **Clean Design** - Apple/Linear-inspired minimal interface
+- **Day Selector Pills** - Single-letter circular buttons (M, T, W, T, F, S, S)
+- **iOS Toggle Switch** - Smooth animated toggle for phone notifications
+- **Toast Notifications** - Slide-in success/error messages
+- **Loading States** - Visual feedback when saving settings
+- **Collapsible Help** - "How it works" accordion to save space
+
+### Settings
 - **PollEv Username** - just the username part (e.g., `gsandoval`)
-- **Class Days** - which days of the week you have class
+- **Class Days** - tap circular day pills to select
 - **Class Time** - start and end time (e.g., 2:00 PM - 3:50 PM)
 - **Class End Date** - when the semester ends (optional)
-- **Phone notifications** - enable/disable
-- **Ntfy topic** - your unique notification channel
+- **Phone notifications** - iOS-style toggle switch
+- **Ntfy topic** - shown only when phone notifications enabled
 
 The extension automatically builds `https://pollev.com/[your-username]`
 
@@ -145,6 +155,21 @@ Click the extension icon to configure:
 | Test notification | Verify setup works |
 
 ## Changelog
+
+### v1.5
+- **UI overhaul**: complete redesign with modern, clean interface
+- **new design**: Apple/Linear-inspired minimal aesthetic
+- **day pills**: circular single-letter buttons (M, T, W, T, F, S, S) with selection animation
+- **iOS toggle**: smooth animated switch for phone notifications
+- **toast notifications**: slide-in messages with icons for success/error/info
+- **card layout**: elevated section cards with subtle shadows
+- **gradient buttons**: primary button with gradient, secondary with outline style
+- **loading states**: spinner animation when saving settings
+- **collapsible help**: accordion for "How it works" section
+- **dynamic version**: version badge pulled from manifest
+- **conditional fields**: ntfy topic field appears only when toggle is on
+- **focus rings**: blue ring on focused inputs for accessibility
+- **separated CSS**: extracted all styles to `popup.css`
 
 ### v1.4
 - class schedule: set days of week + start/end time for notifications
