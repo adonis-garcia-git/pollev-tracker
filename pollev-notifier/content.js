@@ -6,6 +6,36 @@ let checkInterval = null;
 let isInitialized = false;
 let configuredUrl = null;
 
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'FORCE_CHECK') {
+    const status = forceCheckPage();
+    sendResponse(status);
+  }
+  return true; // Keep message channel open for async response
+});
+
+// Force check current page status
+function forceCheckPage() {
+  const waiting = isWaitingScreen();
+  const question = getPollQuestion();
+  const closed = isPollClosed();
+  
+  if (waiting) {
+    return { status: 'waiting' };
+  }
+  
+  if (!question) {
+    return { status: 'no_content' };
+  }
+  
+  if (closed) {
+    return { status: 'old_poll', question: question };
+  }
+  
+  return { status: 'active_poll', question: question };
+}
+
 // Load the last seen poll and configured username from storage when script starts
 async function initialize() {
   const result = await chrome.storage.sync.get(['pollEvUsername']);

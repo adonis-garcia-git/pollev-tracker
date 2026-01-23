@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <style>
     body {
-      width: 350px;
+      width: 380px;
       padding: 20px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
@@ -18,6 +18,12 @@
     
     .section {
       margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .section:last-of-type {
+      border-bottom: none;
     }
     
     label {
@@ -27,13 +33,29 @@
       color: #555;
     }
     
-    input[type="text"] {
+    input[type="text"],
+    input[type="time"],
+    input[type="date"] {
       width: 100%;
       padding: 8px;
       border: 1px solid #ddd;
       border-radius: 4px;
       box-sizing: border-box;
       font-size: 14px;
+    }
+    
+    .time-range {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .time-range input {
+      flex: 1;
+    }
+    
+    .time-range span {
+      color: #666;
     }
     
     .checkbox-container {
@@ -58,6 +80,7 @@
       font-size: 14px;
       width: 100%;
       font-weight: 500;
+      margin-bottom: 8px;
     }
     
     button:hover {
@@ -82,6 +105,12 @@
       background: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
+    }
+    
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
     }
     
     .info {
@@ -110,11 +139,18 @@
     
     .test-button {
       background: #28a745;
-      margin-top: 10px;
     }
     
     .test-button:hover {
       background: #218838;
+    }
+    
+    .force-check-button {
+      background: #6c757d;
+    }
+    
+    .force-check-button:hover {
+      background: #5a6268;
     }
     
     .hint {
@@ -122,45 +158,126 @@
       color: #666;
       margin-top: 4px;
     }
+    
+    h3 {
+      font-size: 15px;
+      color: #444;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    
+    .days-container {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    
+    .day-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+    }
+    
+    .day-checkbox:hover {
+      background: #f8f9fa;
+    }
+    
+    .day-checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   <h2>📢 PollEv Notifier</h2>
   
   <div class="section">
+    <h3>Class Information</h3>
     <label for="pollEvUsername">PollEv Username:</label>
     <input type="text" id="pollEvUsername" placeholder="e.g., gsandoval" />
     <div class="hint">Enter the username from pollev.com/<strong>username</strong></div>
   </div>
   
   <div class="section">
+    <h3>Class Schedule</h3>
+    <label>Class Days:</label>
+    <div class="days-container">
+      <label class="day-checkbox">
+        <input type="checkbox" id="dayMonday" />
+        <span>Mon</span>
+      </label>
+      <label class="day-checkbox">
+        <input type="checkbox" id="dayTuesday" />
+        <span>Tue</span>
+      </label>
+      <label class="day-checkbox">
+        <input type="checkbox" id="dayWednesday" />
+        <span>Wed</span>
+      </label>
+      <label class="day-checkbox">
+        <input type="checkbox" id="dayThursday" />
+        <span>Thu</span>
+      </label>
+      <label class="day-checkbox">
+        <input type="checkbox" id="dayFriday" />
+        <span>Fri</span>
+      </label>
+      <label class="day-checkbox">
+        <input type="checkbox" id="daySaturday" />
+        <span>Sat</span>
+      </label>
+      <label class="day-checkbox">
+        <input type="checkbox" id="daySunday" />
+        <span>Sun</span>
+      </label>
+    </div>
+    
+    <label for="classTime" style="margin-top: 10px;">Class Time:</label>
+    <div class="time-range">
+      <input type="time" id="classStartTime" />
+      <span>to</span>
+      <input type="time" id="classEndTime" />
+    </div>
+    <div class="hint">Notifications only sent during this time on selected days</div>
+    
+    <label for="classEndDate" style="margin-top: 10px;">Class End Date (Optional):</label>
+    <input type="date" id="classEndDate" />
+    <div class="hint">Extension stops working after this date</div>
+  </div>
+  
+  <div class="section">
+    <h3>Phone Notifications</h3>
     <div class="checkbox-container">
       <input type="checkbox" id="ntfyEnabled" />
       <label for="ntfyEnabled" style="margin-bottom: 0;">Enable phone notifications</label>
     </div>
-  </div>
-  
-  <div class="section">
-    <label for="ntfyTopic">Ntfy Topic Name:</label>
+    
+    <label for="ntfyTopic" style="margin-top: 10px;">Ntfy Topic Name:</label>
     <input type="text" id="ntfyTopic" placeholder="e.g., pollev_alerts_john123" />
   </div>
   
   <button id="saveButton">Save Settings</button>
+  <button id="forceCheckButton" class="force-check-button">Force Check Current Page</button>
   <button id="testButton" class="test-button">Send Test Notification</button>
   
   <div id="status" class="status"></div>
   
   <div class="info">
-    <strong>Setup Instructions:</strong>
+    <strong>Features:</strong>
     <ol>
-      <li>Enter your PollEv username (the part after pollev.com/)</li>
-      <li>Install the <strong>Ntfy app</strong> on your phone (<a href="https://ntfy.sh" target="_blank">ntfy.sh</a>)</li>
-      <li>Create a unique topic name (e.g., "pollev_alerts_yourname123")</li>
-      <li>Subscribe to that topic in the Ntfy app</li>
-      <li>Enter the same topic name above and enable notifications</li>
-      <li>Keep the PollEv tab open during class</li>
+      <li><strong>Auto-open:</strong> Extension opens PollEv tab at class start time</li>
+      <li><strong>Time-based:</strong> Only monitors during your class hours</li>
+      <li><strong>Force Check:</strong> See what's currently on the page</li>
+      <li><strong>Auto-expire:</strong> Stops working after class end date</li>
     </ol>
-    The extension checks every 3 seconds for new polls.
   </div>
   
   <script src="popup.js"></script>
