@@ -3,9 +3,9 @@
 Never miss attendance again.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue)
-![Version](https://img.shields.io/badge/version-1.5-green)
+![Version](https://img.shields.io/badge/version-1.6-green)
 
-A modern Chrome extension that monitors PollEv for new polls and notifies your laptop + phone instantly. Features a clean, minimal UI with iOS-style toggles, pill-shaped day selectors, and toast notifications.
+A modern Chrome extension that monitors PollEv for new polls and notifies your laptop + phone instantly. Features a clean, minimal UI with iOS-style toggles, pill-shaped day selectors, toast notifications, and support for multiple classes.
 
 ## Install
 
@@ -35,35 +35,58 @@ Click the extension icon to open the modern, card-based settings interface:
 
 ### UI Features
 - **Clean Design** - Apple/Linear-inspired minimal interface
+- **Multi-Class Support** - Manage multiple classes in one extension
+- **Class Cards** - Visual cards for each class with edit/delete buttons
+- **Modal Dialog** - Add/edit classes in a focused modal interface
 - **Day Selector Pills** - Single-letter circular buttons (M, T, W, T, F, S, S)
 - **iOS Toggle Switch** - Smooth animated toggle for phone notifications
 - **Toast Notifications** - Slide-in success/error messages
 - **Loading States** - Visual feedback when saving settings
-- **Collapsible Help** - "How it works" accordion to save space
+- **Empty State** - Helpful message when no classes configured
 
-### Settings
-- **PollEv Username** - just the username part (e.g., `gsandoval`)
+### Managing Classes
+- Click **"Add New Class"** to configure a new class
+- Each class card shows:
+  - Class name (optional, defaults to username)
+  - PollEv username (e.g., `pollev.com/profsmith`)
+  - Schedule summary (days and time)
+  - End date (if set)
+- Click the **edit icon** to modify a class
+- Click the **trash icon** to delete a class (with confirmation)
+
+### Class Settings (in modal)
+- **Class Name** - optional friendly name (e.g., "CS 101")
+- **PollEv Username** - just the username part (e.g., `profsmith`)
 - **Class Days** - tap circular day pills to select
 - **Class Time** - start and end time (e.g., 2:00 PM - 3:50 PM)
-- **Class End Date** - when the semester ends (optional)
-- **Phone notifications** - iOS-style toggle switch
+- **Class End Date** - when the class ends (optional)
+
+### Global Settings
+- **Phone notifications** - iOS-style toggle switch (applies to all classes)
 - **Ntfy topic** - shown only when phone notifications enabled
 
-The extension automatically builds `https://pollev.com/[your-username]`
+The extension automatically builds `https://pollev.com/[your-username]` for each class
 
 ## Features
 
+### Multiple Class Support
+- Manage multiple classes in one extension
+- Each class has its own schedule and PollEv username
+- Extension monitors all configured classes
+- Automatic migration from single-class setup (v1.5 and earlier)
+
 ### Auto-Open at Class Start
-- Set your class time and days in settings
-- Extension opens PollEv tab automatically at class start
-- Only opens on the days you selected
-- No need to remember to open it manually
+- Set class time and days for each class
+- Extension opens PollEv tabs automatically at their start times
+- If multiple classes start at the same time, opens both tabs
+- Only opens on the days you selected for each class
+- No need to remember to open manually
 
 ### Time-Based Monitoring
-- Only sends notifications during your class hours
-- Ignores polls outside your scheduled time
-- Respects class days (e.g., only Mon/Wed/Fri)
-- Respects class end date
+- Sends notifications during ANY active class hours
+- Ignores polls outside all scheduled times
+- Respects class days for each class (e.g., CS 101 on Mon/Wed/Fri, Math on Tue/Thu)
+- Respects individual class end dates
 
 ### Force Check
 - Click "Force Check Current Page" button
@@ -106,32 +129,38 @@ Detects NEW polls only:
 
 **Initial setup:**
 ```bash
-1. Configure username in settings
-2. Select class days (e.g., Mon, Wed, Fri)
-3. Set class time (e.g., 2:00 PM - 3:50 PM)
-4. Set class end date (optional)
-5. Enable phone notifications (optional)
+1. Click "Add New Class" button
+2. Enter class name (optional, e.g., "CS 101")
+3. Enter PollEv username (e.g., profsmith)
+4. Select class days (e.g., Mon, Wed, Fri)
+5. Set class time (e.g., 2:00 PM - 3:50 PM)
+6. Set class end date (optional)
+7. Click "Save Class"
+8. Repeat for additional classes
+9. Enable phone notifications (optional, applies to all classes)
 ```
 
 **During semester:**
-- Extension auto-opens tab at class start time on class days
+- Extension auto-opens tabs at each class's start time
 - Keep Chrome running (can be minimized)
-- Notification appears when poll goes live
+- Notification appears when poll goes live in ANY class
 - Click notification to jump to poll
+- Edit or delete classes anytime from the popup
 
 **What you need:**
 - Chrome browser running
-- That's it! Tab opens automatically at class time
+- That's it! Tabs open automatically at each class time
 
 ## Settings
 
 Click the extension icon to configure:
-- Set your PollEv username (just the username part)
-- Select class days of the week
-- Set class schedule (start/end time)
-- Set class end date
-- Enable/disable phone notifications
-- Set your Ntfy topic
+- Add/edit/delete classes with individual schedules
+- Set PollEv username for each class
+- Select class days of the week for each class
+- Set class schedule (start/end time) for each class
+- Set class end date for each class
+- Enable/disable phone notifications (global)
+- Set your Ntfy topic (global)
 - Force check current page
 - Test notifications
 
@@ -144,59 +173,55 @@ Click the extension icon to configure:
 
 | Setting | What it does |
 |---------|--------------|
-| PollEv Username | Username from pollev.com/username |
-| Class Days | Days of week you have class (Mon-Sun) |
-| Class Start Time | When class begins (e.g., 2:00 PM) |
-| Class End Time | When class ends (e.g., 3:50 PM) |
-| Class End Date | Last day of semester (optional) |
-| Enable phone notifications | Send push to phone via Ntfy |
-| Ntfy topic | Your unique topic name |
+| Class Name | Optional friendly name for the class (e.g., "CS 101") |
+| PollEv Username | Username from pollev.com/username (per class) |
+| Class Days | Days of week you have class (Mon-Sun, per class) |
+| Class Start Time | When class begins (e.g., 2:00 PM, per class) |
+| Class End Time | When class ends (e.g., 3:50 PM, per class) |
+| Class End Date | Last day of class (optional, per class) |
+| Enable phone notifications | Send push to phone via Ntfy (global) |
+| Ntfy topic | Your unique topic name (global) |
 | Force Check | Check monitored page (opens if needed) |
 | Test notification | Verify setup works |
 
 ## Changelog
 
+### v1.6
+- multi-class support with full crud, cards, modal editing, and duplicate prevention
+- smart scheduling with per-class days, times, alarms, end dates, and class-aware notifications
+- automatic migration from v1.5 single-class format
+- improved force check and monitoring across all configured classes
+
 ### v1.5
-- **UI overhaul**: complete redesign with modern, clean interface
-- **new design**: Apple/Linear-inspired minimal aesthetic
-- **day pills**: circular single-letter buttons (M, T, W, T, F, S, S) with selection animation
-- **iOS toggle**: smooth animated switch for phone notifications
-- **toast notifications**: slide-in messages with icons for success/error/info
-- **card layout**: elevated section cards with subtle shadows
-- **gradient buttons**: primary button with gradient, secondary with outline style
-- **loading states**: spinner animation when saving settings
-- **collapsible help**: accordion for "How it works" section
-- **dynamic version**: version badge pulled from manifest
-- **conditional fields**: ntfy topic field appears only when toggle is on
-- **focus rings**: blue ring on focused inputs for accessibility
-- **separated CSS**: extracted all styles to `popup.css`
+- complete ui overhaul with apple/linear-inspired design and card layout
+- interactive controls including day pills, ios-style toggle, and gradient buttons
+- user feedback via toast notifications, loading states, and empty states
+- ux improvements such as conditional fields, focus rings, collapsible help, and separated css
 
 ### v1.4
-- class schedule: set days of week + start/end time for notifications
-- auto-open: opens PollEv tab at class start time on class days
-- class end date: auto-expire after semester ends
-- force check: opens tab if needed and checks monitored page
-- time-based: only notifies during class hours on class days
-- improved: force check works from any tab
+- class scheduling with days, start/end times, and end date auto-expire
+- auto-open pollev tabs at class start times
+- time-based monitoring during class hours only
+- force check usable from any tab
 
 ### v1.3
-- configurable username: works for any class
-- simplified setup: just enter username, not full URL
-- no default: must configure before use
-- only monitors the page you configure
+- configurable username (works for any class)
+- simplified setup using username only (no full url)
+- no default configuration required before use
+- single-page monitoring only
 
 ### v1.2
-- persistent storage: remembers last poll across refreshes
-- no false notifications on page reload
+- persistent storage across page refreshes
+- no false notifications on reload
 
 ### v1.1
 - fixed emoji encoding in phone notifications
-- improved waiting screen detection
+- improved waiting-screen detection
 
 ### v1.0
 - initial release
 - desktop + phone notifications
-- smart poll detection
+- smart active-poll detection
 
 ## License
 
