@@ -187,41 +187,40 @@ Click the extension icon to configure:
 ## Changelog
 
 ### v1.6
-- multi-class support with full crud, cards, modal editing, and duplicate prevention
-- smart scheduling with per-class days, times, alarms, end dates, and class-aware notifications
-- automatic migration from v1.5 single-class format
-- improved force check and monitoring across all configured classes
+- Multi-class support with cards, CRUD operations, and modal editing
+- Smart per-class scheduling with alarms, days, times, and end dates
+- Automatic migration from v1.5 single-class format
+- Tab status monitoring with quick-open button for closed tabs
 
 ### v1.5
-- complete ui overhaul with apple/linear-inspired design and card layout
-- interactive controls including day pills, ios-style toggle, and gradient buttons
-- user feedback via toast notifications, loading states, and empty states
-- ux improvements such as conditional fields, focus rings, collapsible help, and separated css
+- Complete UI overhaul with Apple/Linear-inspired design
+- Interactive day pills, iOS toggles, and toast notifications
+- Card layout with gradient buttons and loading states
+- Collapsible help section and separated CSS architecture
 
 ### v1.4
-- class scheduling with days, start/end times, and end date auto-expire
-- auto-open pollev tabs at class start times
-- time-based monitoring during class hours only
-- force check usable from any tab
+- Class scheduling with days, times, and auto-expire by end date
+- Auto-open PollEv tabs at scheduled class start times
+- Time-based monitoring during class hours only
+- Force check accessible from any browser tab
 
 ### v1.3
-- configurable username (works for any class)
-- simplified setup using username only (no full url)
-- no default configuration required before use
-- single-page monitoring only
+- Configurable username works for any PollEv class
+- Simplified setup using username only (no full URL needed)
+- No default configuration required before first use
 
 ### v1.2
-- persistent storage across page refreshes
-- no false notifications on reload
+- Persistent storage across page refreshes
+- No false notifications on page reload
 
 ### v1.1
-- fixed emoji encoding in phone notifications
-- improved waiting-screen detection
+- Fixed emoji encoding in phone notifications
+- Improved waiting screen detection
 
 ### v1.0
-- initial release
-- desktop + phone notifications
-- smart active-poll detection
+- Initial release with desktop and phone notifications
+- Smart poll detection for active polls only
+- Click notification to open PollEv tab
 
 ## License
 
