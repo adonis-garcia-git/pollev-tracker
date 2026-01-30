@@ -271,6 +271,66 @@ select.form-input:disabled {
   margin-top: var(--space-1);
 }
 
+.help-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.help-toggle:hover {
+  background: var(--color-primary-light);
+}
+
+.help-toggle svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.ntfy-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 3px solid #3b82f6;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-top: 8px;
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+  color: #1e40af;
+  transition: opacity var(--transition-normal), max-height var(--transition-normal);
+}
+
+.ntfy-hint.hidden {
+  display: none;
+}
+
+.ntfy-hint strong {
+  color: #1e3a8a;
+  font-weight: var(--font-weight-semibold);
+}
+
+.hint-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #3b82f6;
+}
+
 /* Time Range */
 .time-range {
   display: flex;
@@ -1033,13 +1093,412 @@ select.form-input:disabled {
 
 .modal-footer {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--space-2);
   padding: var(--space-4);
   border-top: 1px solid var(--color-border);
 }
 
-.modal-footer .btn {
+.modal-footer-left {
   flex: 1;
+}
+
+.modal-footer-right {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.help-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.help-link:hover {
+  background: var(--color-primary-light);
+}
+
+.help-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ========================================
+   Countdown Banner
+   ======================================== */
+
+.countdown-banner {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-md);
+  animation: slideDown var(--transition-normal);
+}
+
+.countdown-banner.hidden {
+  display: none;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.countdown-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.countdown-icon {
+  width: 24px;
+  height: 24px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.countdown-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: white;
+  min-width: 0;
+}
+
+#countdownLabel {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+#countdownClass {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.countdown-time-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+}
+
+.countdown-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+}
+
+.countdown-action-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+  transform: translateY(-1px);
+}
+
+.countdown-action-btn:active {
+  transform: translateY(0);
+}
+
+.countdown-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Today Classes Modal List */
+.today-classes-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.today-class-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.today-class-info {
+  flex: 1;
+}
+
+.today-class-name {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.today-class-time {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ========================================
+   Quick Actions on Class Cards
+   ======================================== */
+
+.class-card-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family);
+  background: var(--color-bg-card);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.quick-action-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.quick-action-btn:active {
+  transform: translateY(0);
+}
+
+.quick-action-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.quick-action-btn.notify-toggle.enabled {
+  background: var(--color-success-light);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.quick-action-btn.notify-toggle.enabled:hover {
+  background: var(--color-success);
+  color: white;
+}
+
+.quick-action-btn.notify-toggle.disabled {
+  background: var(--color-error-light);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.quick-action-btn.notify-toggle.disabled:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.quick-action-btn.loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.quick-action-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spinner 0.6s linear infinite;
+}
+
+/* ========================================
+   Do Not Disturb
+   ======================================== */
+
+.dnd-container {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.dnd-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.dnd-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.dnd-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-info-light);
+  border: 1px solid var(--color-info);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-info);
+  font-weight: var(--font-weight-medium);
+}
+
+.dnd-status svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dnd-status.hidden {
+  display: none;
+}
+
+/* ========================================
+   Error Badge & Modal
+   ======================================== */
+
+.error-badge {
+  margin-left: auto;
+  background: var(--color-error);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  animation: shake 0.5s ease-in-out, pulse-error 2s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.error-badge:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+}
+
+.error-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.error-badge.hidden {
+  display: none;
+}
+
+@keyframes pulse-error {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.error-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.error-section {
+  padding: var(--space-3);
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-error);
+}
+
+.error-section-title {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.error-message,
+.error-context,
+.error-time {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.error-suggestion {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  font-style: italic;
 }
 
 /* ========================================

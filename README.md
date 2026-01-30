@@ -3,7 +3,7 @@
 Never miss attendance again.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue)
-![Version](https://img.shields.io/badge/version-1.6-green)
+![Version](https://img.shields.io/badge/version-1.7-green)
 
 A modern Chrome extension that monitors PollEv for new polls and notifies your laptop + phone instantly. Features a clean, minimal UI with iOS-style toggles, pill-shaped day selectors, toast notifications, and support for multiple classes.
 
@@ -185,6 +185,14 @@ Click the extension icon to configure:
 | Test notification | Verify setup works |
 
 ## Changelog
+
+### v1.7
+- Enhanced error visibility: auto-opening error modal on test failures
+- Improved error badge with shake animation, larger size, and glow effect
+- Clearer toast messages directing users to error details
+- Toggleable Ntfy setup instructions with "Need help?" button
+- Help link in error modal pointing to Ntfy documentation
+- Instant Do Not Disturb activation with default 1-hour duration
 
 ### v1.6
 - Multi-class support with cards, CRUD operations, and modal editing

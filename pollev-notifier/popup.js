@@ -91,6 +91,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Check tab status
   await checkTabStatus();
+
+  // Check for errors
+  await checkForErrors();
+
+  // Update DND status
+  await updateDndStatus();
+
+  // Start countdown timer
+  startCountdownTimer();
 });
 
 // Render the list of classes
@@ -171,6 +180,9 @@ function renderClassList() {
       }
     }
 
+    // Check if notifications are enabled (default to true for backward compatibility)
+    const notificationsEnabled = cls.notificationsEnabled !== undefined ? cls.notificationsEnabled : true;
+
     return `
       <div class="class-card ${isInClassTime && !isTabOpen ? 'warning' : ''}" data-class-id="${cls.id}">
         <div class="class-card-header">
@@ -214,6 +226,36 @@ function renderClassList() {
           </div>
           ` : ''}
         </div>
+        <div class="class-card-quick-actions">
+          <button class="quick-action-btn test-now" data-class-id="${cls.id}" title="Test this class now">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            <span>Test Now</span>
+          </button>
+          <button class="quick-action-btn open-tab" data-username="${cls.pollEvUsername}" title="Open PollEv tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            <span>Open Tab</span>
+          </button>
+          <button class="quick-action-btn notify-toggle ${notificationsEnabled ? 'enabled' : 'disabled'}" data-class-id="${cls.id}" title="${notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              ${notificationsEnabled ? '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>' : '<path d="M6.873 17C5.275 17 4 15.745 4 14.17V8.83C4 7.256 5.274 6 6.873 6h2.254l2.11-3h4.526l2.11 3h2.254C21.726 6 23 7.255 23 8.83v5.34c0 1.574-1.274 2.83-2.873 2.83H6.873Z"/><line x1="2" y1="2" x2="22" y2="22"/>'}
+            </svg>
+            <span>${notificationsEnabled ? 'Notifications On' : 'Notifications Off'}</span>
+          </button>
+          <button class="quick-action-btn duplicate" data-class-id="${cls.id}" title="Duplicate this class">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            <span>Duplicate</span>
+          </button>
+        </div>
       </div>
     `;
   }).join('');
@@ -241,6 +283,39 @@ function renderClassList() {
       e.stopPropagation();
       const username = btn.dataset.username;
       openPollEvTab(username);
+    });
+  });
+
+  // Add event listeners for quick actions
+  document.querySelectorAll('.quick-action-btn.test-now').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const classId = btn.dataset.classId;
+      handleQuickTestNow(classId);
+    });
+  });
+
+  document.querySelectorAll('.quick-action-btn.open-tab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const username = btn.dataset.username;
+      openPollEvTab(username);
+    });
+  });
+
+  document.querySelectorAll('.quick-action-btn.notify-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const classId = btn.dataset.classId;
+      handleNotificationToggle(classId);
+    });
+  });
+
+  document.querySelectorAll('.quick-action-btn.duplicate').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const classId = btn.dataset.classId;
+      duplicateClass(classId);
     });
   });
 
@@ -630,6 +705,12 @@ document.getElementById('ntfyEnabled').addEventListener('change', (e) => {
   updateNtfyFieldVisibility(e.target.checked);
 });
 
+// Ntfy help toggle handler
+document.getElementById('ntfyHelpToggle').addEventListener('click', () => {
+  const ntfyHint = document.getElementById('ntfyHint');
+  ntfyHint.classList.toggle('hidden');
+});
+
 // Update ntfy topic field visibility
 function updateNtfyFieldVisibility(isEnabled) {
   const ntfyTopicField = document.getElementById('ntfyTopicField');
@@ -709,19 +790,29 @@ document.getElementById('forceCheckButton').addEventListener('click', async () =
 
 // Test notification
 document.getElementById('testButton').addEventListener('click', async () => {
+  let desktopSuccess = false;
+  let phoneSuccess = false;
+  let phoneConfigured = false;
+
   // Test desktop notification
-  chrome.notifications.create({
-    type: "basic",
-    iconUrl: "icon128.png",
-    title: "Test Notification",
-    message: "This is a test poll notification!",
-    priority: 2
-  });
+  try {
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "icon128.png",
+      title: "Test Notification",
+      message: "This is a test poll notification!",
+      priority: 2
+    });
+    desktopSuccess = true;
+  } catch (error) {
+    console.error('Desktop notification failed:', error);
+  }
 
   // Test phone notification if enabled
   const result = await chrome.storage.sync.get(['ntfyTopic', 'ntfyEnabled']);
 
   if (result.ntfyEnabled && result.ntfyTopic) {
+    phoneConfigured = true;
     try {
       const topic = result.ntfyTopic;
       const url = `https://ntfy.sh/${topic}`;
@@ -737,15 +828,34 @@ document.getElementById('testButton').addEventListener('click', async () => {
       });
 
       if (response.ok) {
-        showToast('Test notifications sent! Check your devices.', 'success');
+        phoneSuccess = true;
       } else {
-        showToast('Desktop notification sent. Phone notification may have failed.', 'error');
+        throw new Error(`Ntfy returned status ${response.status}`);
       }
     } catch (error) {
-      showToast('Desktop notification sent. Phone notification failed: ' + error.message, 'error');
+      console.error('Phone notification failed:', error);
+      await chrome.storage.local.set({
+        lastError: {
+          message: `Phone notification test failed: ${error.message}`,
+          timestamp: Date.now(),
+          context: 'ntfy_notification',
+          classId: null
+        }
+      });
+      await checkForErrors();
+      showErrorModal(); // Auto-open modal
     }
+  }
+
+  // Show delivery confirmation
+  if (desktopSuccess && phoneSuccess) {
+    showToast('Desktop ✓, Phone ✓ - Test notifications sent!', 'success');
+  } else if (desktopSuccess && phoneConfigured && !phoneSuccess) {
+    showToast('Desktop ✓, Phone ✗ - Click the red badge next to "Phone Alerts" for details', 'error');
+  } else if (desktopSuccess && !phoneConfigured) {
+    showToast('Desktop ✓ - Phone notifications not configured', 'success');
   } else {
-    showToast('Desktop notification sent! (Phone notifications not configured)', 'success');
+    showToast('Test failed. Check error details.', 'error');
   }
 });
 
@@ -785,3 +895,434 @@ function showToast(message, type) {
     }, 300);
   }, 5000);
 }
+
+// Check for errors from storage
+async function checkForErrors() {
+  const result = await chrome.storage.local.get(['lastError']);
+  const errorBadge = document.getElementById('errorBadge');
+
+  if (result.lastError) {
+    const error = result.lastError;
+    const now = Date.now();
+    const errorAge = now - error.timestamp;
+
+    // Clear errors older than 24 hours
+    if (errorAge > 24 * 60 * 60 * 1000) {
+      await chrome.storage.local.remove(['lastError']);
+      errorBadge.classList.add('hidden');
+    } else {
+      // Show error badge
+      errorBadge.classList.remove('hidden');
+    }
+  } else {
+    errorBadge.classList.add('hidden');
+  }
+}
+
+// Show error modal with details
+async function showErrorModal() {
+  const result = await chrome.storage.local.get(['lastError']);
+  if (!result.lastError) {
+    showToast('No errors to display', 'info');
+    return;
+  }
+
+  const error = result.lastError;
+  const modal = document.getElementById('errorModal');
+
+  // Populate error details
+  document.getElementById('errorMessage').textContent = error.message;
+  document.getElementById('errorContext').textContent = formatErrorContext(error.context);
+  document.getElementById('errorTime').textContent = new Date(error.timestamp).toLocaleString();
+  document.getElementById('errorSuggestion').textContent = getSuggestionForError(error.context);
+
+  // Show modal
+  modal.classList.remove('hidden');
+}
+
+// Format error context for display
+function formatErrorContext(context) {
+  const contextMap = {
+    'ntfy_notification': 'Phone Notification (Ntfy)',
+    'force_check': 'Force Check Page',
+    'tab_closed_notification': 'Tab Closed Alert',
+    'alarm_trigger': 'Scheduled Alarm'
+  };
+  return contextMap[context] || context;
+}
+
+// Get troubleshooting suggestion for error
+function getSuggestionForError(context) {
+  const suggestions = {
+    'ntfy_notification': 'Check your Ntfy topic name is correct and your device is connected to the internet.',
+    'force_check': 'Make sure the PollEv page is fully loaded before forcing a check. Try refreshing the tab.',
+    'tab_closed_notification': 'Check your Ntfy configuration in settings.',
+    'alarm_trigger': 'Try removing and re-adding the class schedule.'
+  };
+  return suggestions[context] || 'Try restarting the extension or checking your internet connection.';
+}
+
+// Close error modal
+function closeErrorModal() {
+  document.getElementById('errorModal').classList.add('hidden');
+}
+
+// Clear error from storage
+async function clearError() {
+  await chrome.storage.local.remove(['lastError']);
+  await checkForErrors();
+  closeErrorModal();
+  showToast('Error cleared', 'success');
+}
+
+// Error badge click - show error modal
+document.getElementById('errorBadge').addEventListener('click', showErrorModal);
+
+// Close error modal buttons
+document.getElementById('closeErrorModalButton').addEventListener('click', closeErrorModal);
+document.getElementById('closeErrorButton').addEventListener('click', closeErrorModal);
+
+// Clear error button
+document.getElementById('clearErrorButton').addEventListener('click', clearError);
+
+// Close modal when clicking outside
+document.getElementById('errorModal').addEventListener('click', (e) => {
+  if (e.target.id === 'errorModal') {
+    closeErrorModal();
+  }
+});
+
+// Update DND status display
+async function updateDndStatus() {
+  const result = await chrome.storage.local.get(['dndUntil']);
+  const dndEnabled = document.getElementById('dndEnabled');
+  const dndDurationField = document.getElementById('dndDurationField');
+  const dndStatus = document.getElementById('dndStatus');
+  const dndStatusText = document.getElementById('dndStatusText');
+
+  if (result.dndUntil && result.dndUntil > Date.now()) {
+    // DND is active
+    const expiryDate = new Date(result.dndUntil);
+    const timeStr = expiryDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    dndEnabled.checked = true;
+    dndDurationField.classList.add('hidden');
+    dndStatus.classList.remove('hidden');
+    dndStatusText.textContent = `Active until ${timeStr}`;
+  } else {
+    // DND is not active
+    if (result.dndUntil) {
+      // DND expired, clear it
+      await chrome.storage.local.remove(['dndUntil']);
+    }
+    dndEnabled.checked = false;
+    dndDurationField.classList.add('hidden');
+    dndStatus.classList.add('hidden');
+  }
+}
+
+// DND toggle change handler
+document.getElementById('dndEnabled').addEventListener('change', async (e) => {
+  const dndDurationField = document.getElementById('dndDurationField');
+  const dndStatus = document.getElementById('dndStatus');
+  const dndDuration = document.getElementById('dndDuration');
+
+  if (e.target.checked) {
+    // Immediately activate DND with default duration
+    const duration = parseInt(dndDuration.value);
+    const dndUntil = Date.now() + duration;
+
+    await chrome.storage.local.set({ dndUntil });
+    await updateDndStatus();
+
+    const hours = Math.floor(duration / 3600000);
+    showToast(`Do Not Disturb enabled for ${hours} hour${hours > 1 ? 's' : ''}`, 'success');
+  } else {
+    // Disable DND
+    await chrome.storage.local.remove(['dndUntil']);
+    dndDurationField.classList.add('hidden');
+    dndStatus.classList.add('hidden');
+    showToast('Do Not Disturb disabled', 'info');
+  }
+});
+
+// DND duration change handler
+document.getElementById('dndDuration').addEventListener('change', async (e) => {
+  const duration = parseInt(e.target.value);
+  const dndUntil = Date.now() + duration;
+
+  await chrome.storage.local.set({ dndUntil });
+  await updateDndStatus();
+
+  const hours = Math.floor(duration / 3600000);
+  showToast(`Do Not Disturb enabled for ${hours} hour${hours > 1 ? 's' : ''}`, 'success');
+});
+
+// Quick action: Test Now
+async function handleQuickTestNow(classId) {
+  const cls = classes.find(c => c.id === classId);
+  if (!cls) {
+    showToast('Class not found', 'error');
+    return;
+  }
+
+  // Show loading state
+  const btn = document.querySelector(`.quick-action-btn.test-now[data-class-id="${classId}"]`);
+  if (btn) {
+    btn.classList.add('loading');
+  }
+
+  try {
+    const response = await sendMessageWithTimeout({
+      type: 'FORCE_CHECK_PAGE',
+      username: cls.pollEvUsername,
+      classId: cls.id,
+      className: cls.name || cls.pollEvUsername
+    }, 10000);
+
+    handleForceCheckResponse(response, cls.name || cls.pollEvUsername);
+  } catch (error) {
+    showToast('Test failed: ' + error.message, 'error');
+  } finally {
+    if (btn) {
+      btn.classList.remove('loading');
+    }
+  }
+}
+
+// Quick action: Toggle notifications
+async function handleNotificationToggle(classId) {
+  const cls = classes.find(c => c.id === classId);
+  if (!cls) {
+    showToast('Class not found', 'error');
+    return;
+  }
+
+  // Toggle the notification state (default to true if not set)
+  const currentState = cls.notificationsEnabled !== undefined ? cls.notificationsEnabled : true;
+  const newState = !currentState;
+
+  // Update the class object
+  cls.notificationsEnabled = newState;
+
+  // Save to storage
+  await chrome.storage.sync.set({ classes });
+
+  // Re-render to update UI
+  renderClassList();
+
+  showToast(
+    newState ? `Notifications enabled for ${cls.name || cls.pollEvUsername}` : `Notifications muted for ${cls.name || cls.pollEvUsername}`,
+    newState ? 'success' : 'info'
+  );
+}
+
+// Quick action: Duplicate class
+function duplicateClass(classId) {
+  const cls = classes.find(c => c.id === classId);
+  if (!cls) {
+    showToast('Class not found', 'error');
+    return;
+  }
+
+  // Open modal in "add" mode
+  currentEditingClassId = null;
+  const modal = document.getElementById('classModal');
+  const modalTitle = document.getElementById('modalTitle');
+
+  // Pre-fill form with existing data
+  modalTitle.textContent = 'Duplicate Class';
+  document.getElementById('modalClassName').value = `${cls.name || cls.pollEvUsername} (Copy)`;
+  document.getElementById('modalPollEvUsername').value = cls.pollEvUsername;
+  document.getElementById('modalClassStartTime').value = cls.classStartTime || '';
+  document.getElementById('modalClassEndTime').value = cls.classEndTime || '';
+  document.getElementById('modalClassEndDate').value = cls.classEndDate || '';
+
+  const dayIds = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const classDays = cls.classDays || [];
+  dayIds.forEach(day => {
+    document.getElementById(`modalDay${day}`).checked = classDays.includes(day);
+  });
+
+  modal.classList.remove('hidden');
+}
+
+// Countdown timer
+let countdownInterval = null;
+
+function startCountdownTimer() {
+  // Update immediately
+  updateCountdown();
+
+  // Update every 60 seconds
+  countdownInterval = setInterval(updateCountdown, 60000);
+}
+
+function updateCountdown() {
+  const nextClass = findNextClass();
+  const banner = document.getElementById('countdownBanner');
+
+  if (!nextClass) {
+    banner.classList.add('hidden');
+    return;
+  }
+
+  const { cls, minutesUntil } = nextClass;
+
+  // If class has already started, hide the banner
+  if (minutesUntil < 0) {
+    banner.classList.remove('hidden');
+    document.getElementById('countdownClass').textContent = cls.name || cls.pollEvUsername;
+    document.getElementById('countdownTime').textContent = 'Now!';
+    document.getElementById('countdownTime').style.background = 'var(--color-success)';
+    return;
+  }
+
+  // Show banner
+  banner.classList.remove('hidden');
+
+  // Update text
+  document.getElementById('countdownClass').textContent = cls.name || cls.pollEvUsername;
+
+  // Format time
+  const hours = Math.floor(minutesUntil / 60);
+  const minutes = minutesUntil % 60;
+
+  let timeStr = '';
+  if (hours > 0) {
+    timeStr = `in ${hours}h ${minutes}m`;
+  } else {
+    timeStr = `in ${minutes}m`;
+  }
+
+  document.getElementById('countdownTime').textContent = timeStr;
+  document.getElementById('countdownTime').style.background = '';
+}
+
+function findNextClass() {
+  if (classes.length === 0) return null;
+
+  const now = new Date();
+  const currentDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+
+  let closestClass = null;
+  let closestMinutes = Infinity;
+
+  for (const cls of classes) {
+    // Skip if no schedule
+    if (!cls.classStartTime || !cls.classEndTime) continue;
+
+    // Skip if class has ended
+    if (cls.classEndDate) {
+      const endDate = new Date(cls.classEndDate);
+      endDate.setHours(23, 59, 59);
+      if (now > endDate) continue;
+    }
+
+    // Check if today is a class day
+    if (cls.classDays && cls.classDays.length > 0) {
+      if (!cls.classDays.includes(currentDay)) continue;
+    }
+
+    // Parse start time
+    const [startHour, startMin] = cls.classStartTime.split(':').map(Number);
+    const startTime = startHour * 60 + startMin;
+
+    // Calculate minutes until class
+    const minutesUntil = startTime - currentTime;
+
+    // If class starts later today and is sooner than current closest
+    if (minutesUntil >= -5 && minutesUntil < closestMinutes) {
+      closestMinutes = minutesUntil;
+      closestClass = cls;
+    }
+  }
+
+  if (closestClass) {
+    return { cls: closestClass, minutesUntil: closestMinutes };
+  }
+
+  return null;
+}
+
+function showTodayClasses() {
+  const now = new Date();
+  const currentDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
+
+  // Filter classes for today
+  const todayClasses = classes.filter(cls => {
+    // Skip if no schedule
+    if (!cls.classStartTime || !cls.classEndTime) return false;
+
+    // Skip if class has ended
+    if (cls.classEndDate) {
+      const endDate = new Date(cls.classEndDate);
+      endDate.setHours(23, 59, 59);
+      if (now > endDate) return false;
+    }
+
+    // Check if today is a class day
+    if (cls.classDays && cls.classDays.length > 0) {
+      return cls.classDays.includes(currentDay);
+    }
+
+    return false;
+  });
+
+  // Sort by start time
+  todayClasses.sort((a, b) => {
+    const [aHour, aMin] = a.classStartTime.split(':').map(Number);
+    const [bHour, bMin] = b.classStartTime.split(':').map(Number);
+    const aTime = aHour * 60 + aMin;
+    const bTime = bHour * 60 + bMin;
+    return aTime - bTime;
+  });
+
+  // Render list
+  const listContainer = document.getElementById('todayClassesList');
+
+  if (todayClasses.length === 0) {
+    listContainer.innerHTML = '<p class="empty-state-text">No classes scheduled for today</p>';
+  } else {
+    listContainer.innerHTML = todayClasses.map(cls => {
+      const timeStr = `${formatTime(cls.classStartTime)} - ${formatTime(cls.classEndTime)}`;
+      return `
+        <div class="today-class-item">
+          <div class="today-class-info">
+            <h4 class="today-class-name">${escapeHtml(cls.name || cls.pollEvUsername)}</h4>
+            <p class="today-class-time">${timeStr}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Show modal
+  document.getElementById('allClassesTodayModal').classList.remove('hidden');
+}
+
+// Cleanup countdown on unload
+window.addEventListener('beforeunload', () => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+});
+
+// Countdown banner - view all classes button
+document.getElementById('viewAllClassesBtn').addEventListener('click', showTodayClasses);
+
+// Close all classes today modal
+document.getElementById('closeAllClassesTodayButton').addEventListener('click', () => {
+  document.getElementById('allClassesTodayModal').classList.add('hidden');
+});
+
+document.getElementById('closeTodayClassesButton').addEventListener('click', () => {
+  document.getElementById('allClassesTodayModal').classList.add('hidden');
+});
+
+document.getElementById('allClassesTodayModal').addEventListener('click', (e) => {
+  if (e.target.id === 'allClassesTodayModal') {
+    document.getElementById('allClassesTodayModal').classList.add('hidden');
+  }
+});

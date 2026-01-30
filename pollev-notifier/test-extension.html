@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PollEv Notifier v1.7 - Test Suite</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f8fafc;
+    }
+    h1 { color: #2563EB; margin-bottom: 10px; }
+    .subtitle { color: #64748B; margin-bottom: 30px; }
+    .test-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+    }
+    .test-section h2 {
+      margin: 0 0 15px 0;
+      color: #1e293b;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .feature-badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .feature-1 { background: #FEF2F2; color: #DC2626; }
+    .feature-2 { background: #F0FDF4; color: #16A34A; }
+    .feature-3 { background: #EFF6FF; color: #2563EB; }
+    .feature-4 { background: #FEF3C7; color: #D97706; }
+    .test-item {
+      padding: 12px;
+      margin: 8px 0;
+      background: #f8fafc;
+      border-radius: 8px;
+      display: flex;
+      align-items: start;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .test-item:hover { background: #f1f5f9; }
+    .test-item.pass { background: #f0fdf4; border-left: 3px solid #10b981; }
+    .test-item.fail { background: #fef2f2; border-left: 3px solid #ef4444; }
+    .test-item.skip { background: #fefce8; border-left: 3px solid #eab308; }
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .test-text { flex: 1; line-height: 1.6; }
+    .test-title { font-weight: 500; color: #1e293b; }
+    .test-steps {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+      display: none;
+    }
+    .test-item.expanded .test-steps { display: block; }
+    .test-steps ol { margin: 8px 0; padding-left: 20px; }
+    .test-steps li { margin: 4px 0; }
+    .status-bar {
+      position: sticky;
+      top: 0;
+      background: white;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      z-index: 10;
+    }
+    .status-item { display: flex; align-items: center; gap: 8px; }
+    .status-count {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .status-label {
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+    .pass-color { color: #10b981; }
+    .fail-color { color: #ef4444; }
+    .skip-color { color: #eab308; }
+    button {
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background: #1d4ed8; }
+    .instructions {
+      background: #eff6ff;
+      border: 1px solid #2563eb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .instructions strong { color: #2563eb; }
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 PollEv Notifier v1.7 - Test Suite</h1>
+  <p class="subtitle">Interactive testing checklist for all 4 new features</p>
+
+  <div class="instructions">
+    <strong>📋 Instructions:</strong> Click each test item to expand details. Check the box when completed. Tests will turn green (pass), red (fail), or yellow (skip).
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item">
+      <div>
+        <div class="status-count pass-color" id="passCount">0</div>
+        <div class="status-label">Passed</div>
+      </div>
+    </div>
+    <div class="status-item">
+      <div>
+        <div class="status-count fail-color" id="failCount">0</div>
+        <div class="status-label">Failed</div>
+      </div>
+    </div>
+    <div class="status-item">
+      <div>
+        <div class="status-count skip-color" id="skipCount">0</div>
+        <div class="status-label">Skipped</div>
+      </div>
+    </div>
+    <div class="status-item">
+      <div>
+        <div class="status-count" id="totalCount">0/28</div>
+        <div class="status-label">Progress</div>
+      </div>
+    </div>
+    <button onclick="resetTests()">Reset All</button>
+  </div>
+
+  <!-- Feature 1: Error Visibility -->
+  <div class="test-section">
+    <h2><span class="feature-badge feature-1">Feature #1</span> Error Visibility</h2>
+
+    <div class="test-item" data-test="f1-t1" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f1-t1')">
+      <div class="test-text">
+        <div class="test-title">Error badge appears after failed notification</div>
+        <div class="test-steps">
+          <ol>
+            <li>Open extension popup</li>
+            <li>Enable phone notifications</li>
+            <li>Enter invalid Ntfy topic: <code>invalid_topic_xyz123</code></li>
+            <li>Click "Test Alert"</li>
+            <li>Desktop notification should appear ✓</li>
+            <li>Red pulsing error badge should appear next to "Phone Alerts" title</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f1-t2" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f1-t2')">
+      <div class="test-text">
+        <div class="test-title">Error modal shows details correctly</div>
+        <div class="test-steps">
+          <ol>
+            <li>Click the red error badge</li>
+            <li>Modal should open with title "Error Details"</li>
+            <li>Should show: Error Message, Context, Time, Suggested Fix</li>
+            <li>Context should be "Phone Notification (Ntfy)"</li>
+            <li>Suggestion should mention checking topic name</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f1-t3" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f1-t3')">
+      <div class="test-text">
+        <div class="test-title">Clear error button works</div>
+        <div class="test-steps">
+          <ol>
+            <li>In error modal, click "Clear Error" button</li>
+            <li>Modal should close</li>
+            <li>Error badge should disappear from Phone Alerts section</li>
+            <li>Toast should show "Error cleared"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f1-t4" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f1-t4')">
+      <div class="test-text">
+        <div class="test-title">Test notification shows delivery status</div>
+        <div class="test-steps">
+          <ol>
+            <li>Configure valid Ntfy topic OR disable phone notifications</li>
+            <li>Click "Test Alert"</li>
+            <li>Toast should show delivery confirmation:</li>
+            <li>If phone configured: "Desktop ✓, Phone ✓" or "Desktop ✓, Phone ✗"</li>
+            <li>If not configured: "Desktop ✓ - Phone notifications not configured"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 4: DND Mode -->
+  <div class="test-section">
+    <h2><span class="feature-badge feature-4">Feature #4</span> Do Not Disturb Mode</h2>
+
+    <div class="test-item" data-test="f4-t1" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f4-t1')">
+      <div class="test-text">
+        <div class="test-title">DND controls appear in Phone Alerts</div>
+        <div class="test-steps">
+          <ol>
+            <li>Scroll to Phone Alerts section</li>
+            <li>Should see "Do Not Disturb" header with moon icon</li>
+            <li>Toggle switch for "Mute all notifications"</li>
+            <li>Duration dropdown hidden by default</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f4-t2" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f4-t2')">
+      <div class="test-text">
+        <div class="test-title">DND enable shows duration picker</div>
+        <div class="test-steps">
+          <ol>
+            <li>Toggle "Mute all notifications" ON</li>
+            <li>Duration dropdown should appear</li>
+            <li>Should have options: 1h, 2h, 4h, 8h, 24h</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f4-t3" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f4-t3')">
+      <div class="test-text">
+        <div class="test-title">DND status indicator shows correctly</div>
+        <div class="test-steps">
+          <ol>
+            <li>Select "1 hour" from duration dropdown</li>
+            <li>Blue status box should appear</li>
+            <li>Should show "Active until [time]" (current time + 1 hour)</li>
+            <li>Toast: "Do Not Disturb enabled for 1 hour"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f4-t4" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f4-t4')">
+      <div class="test-text">
+        <div class="test-title">DND disable clears status</div>
+        <div class="test-steps">
+          <ol>
+            <li>Toggle "Mute all notifications" OFF</li>
+            <li>Status indicator should disappear</li>
+            <li>Duration dropdown should hide</li>
+            <li>Toast: "Do Not Disturb disabled"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f4-t5" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f4-t5')">
+      <div class="test-text">
+        <div class="test-title">DND persists after popup close/reopen</div>
+        <div class="test-steps">
+          <ol>
+            <li>Enable DND for 1 hour</li>
+            <li>Close extension popup</li>
+            <li>Reopen popup</li>
+            <li>DND status should still show "Active until [time]"</li>
+            <li>Toggle should be ON</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 2: Quick Actions -->
+  <div class="test-section">
+    <h2><span class="feature-badge feature-2">Feature #2</span> Quick Actions on Class Cards</h2>
+
+    <div class="test-item" data-test="f2-t1" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f2-t1')">
+      <div class="test-text">
+        <div class="test-title">Quick actions appear on class cards</div>
+        <div class="test-steps">
+          <ol>
+            <li>Add a test class (any username, today's schedule)</li>
+            <li>Class card should show 4 buttons at bottom in 2x2 grid</li>
+            <li>Buttons: "Test Now", "Open Tab", "Notifications On", "Duplicate"</li>
+            <li>Each button has icon + text</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f2-t2" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f2-t2')">
+      <div class="test-text">
+        <div class="test-title">"Test Now" button works</div>
+        <div class="test-steps">
+          <ol>
+            <li>Click "Test Now" on a class card</li>
+            <li>Button should show loading spinner</li>
+            <li>Should trigger force check for that class only</li>
+            <li>Toast shows result (waiting screen, active poll, etc.)</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f2-t3" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f2-t3')">
+      <div class="test-text">
+        <div class="test-title">"Open Tab" button works</div>
+        <div class="test-steps">
+          <ol>
+            <li>Click "Open Tab" on a class card</li>
+            <li>PollEv tab should open in browser (or focus if exists)</li>
+            <li>Toast: "Tab opened" or "Tab focused"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f2-t4" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f2-t4')">
+      <div class="test-text">
+        <div class="test-title">"Notifications" toggle works</div>
+        <div class="test-steps">
+          <ol>
+            <li>Button should show "Notifications On" (green) by default</li>
+            <li>Click the button</li>
+            <li>Should change to "Notifications Off" (red background)</li>
+            <li>Toast: "Notifications muted for [Class Name]"</li>
+            <li>Click again → back to green "Notifications On"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f2-t5" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f2-t5')">
+      <div class="test-text">
+        <div class="test-title">"Duplicate" button works</div>
+        <div class="test-steps">
+          <ol>
+            <li>Click "Duplicate" on a class card</li>
+            <li>Modal should open with title "Duplicate Class"</li>
+            <li>All fields pre-filled from original class</li>
+            <li>Class name should have "(Copy)" suffix</li>
+            <li>Can save as new class</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f2-t6" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f2-t6')">
+      <div class="test-text">
+        <div class="test-title">Notification toggle persists</div>
+        <div class="test-steps">
+          <ol>
+            <li>Turn notifications OFF for a class (red)</li>
+            <li>Close and reopen popup</li>
+            <li>Class should still show "Notifications Off" (red)</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 3: Countdown -->
+  <div class="test-section">
+    <h2><span class="feature-badge feature-3">Feature #3</span> Next Class Countdown</h2>
+
+    <div class="test-item" data-test="f3-t1" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t1')">
+      <div class="test-text">
+        <div class="test-title">Countdown banner appears for upcoming class</div>
+        <div class="test-steps">
+          <ol>
+            <li>Add a class starting 2 hours from now (today's day selected)</li>
+            <li>Close and reopen popup</li>
+            <li>Blue gradient banner should appear at top</li>
+            <li>Shows: Clock icon, "Next class: [Name]", time badge, "View all today" button</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f3-t2" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t2')">
+      <div class="test-text">
+        <div class="test-title">Countdown shows correct time format</div>
+        <div class="test-steps">
+          <ol>
+            <li>Time badge should show "in 2h 0m" (or similar)</li>
+            <li>If &lt;1 hour: "in 45m"</li>
+            <li>If class started: "Now!"</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f3-t3" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t3')">
+      <div class="test-text">
+        <div class="test-title">Countdown updates every 60 seconds</div>
+        <div class="test-steps">
+          <ol>
+            <li>Keep popup open for 60+ seconds</li>
+            <li>Time badge should update (e.g., "in 2h 0m" → "in 1h 59m")</li>
+            <li>Updates happen automatically without refresh</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f3-t4" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t4')">
+      <div class="test-text">
+        <div class="test-title">"View all today" button works</div>
+        <div class="test-steps">
+          <ol>
+            <li>Add 2-3 classes for today at different times</li>
+            <li>Click "View all today" button on countdown banner</li>
+            <li>Modal should open with title "Classes Today"</li>
+            <li>Shows all classes sorted by start time (earliest first)</li>
+            <li>Each class shows name and time range</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f3-t5" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t5')">
+      <div class="test-text">
+        <div class="test-title">Countdown hides when no upcoming classes</div>
+        <div class="test-steps">
+          <ol>
+            <li>Delete all classes OR set none for today</li>
+            <li>Reload popup</li>
+            <li>Countdown banner should be hidden</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f3-t6" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t6')">
+      <div class="test-text">
+        <div class="test-title">Pre-class warning notification works</div>
+        <div class="test-steps">
+          <ol>
+            <li>Add a class starting in exactly 6 minutes</li>
+            <li>Ensure notifications enabled (not DND, not muted)</li>
+            <li>Wait 1 minute (5 min before class)</li>
+            <li>Notification should appear: "Class Starting Soon - [Name] starts in 5 minutes"</li>
+            <li>⚠️ May need to check background service worker logs</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="f3-t7" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'f3-t7')">
+      <div class="test-text">
+        <div class="test-title">Pre-class warning respects DND and class mute</div>
+        <div class="test-steps">
+          <ol>
+            <li>Enable DND for 1 hour</li>
+            <li>Add class starting in 6 minutes</li>
+            <li>Wait for 5-minute warning</li>
+            <li>Should NOT send notification (DND blocks it)</li>
+            <li>Same test with per-class notifications OFF</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Integration Tests -->
+  <div class="test-section">
+    <h2><span class="feature-badge feature-1">Integration</span> Cross-Feature Tests</h2>
+
+    <div class="test-item" data-test="int-t1" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'int-t1')">
+      <div class="test-text">
+        <div class="test-title">DND blocks all notification sources</div>
+        <div class="test-steps">
+          <ol>
+            <li>Enable DND for 1 hour</li>
+            <li>Try: Force check, Test notification, Pre-class warning</li>
+            <li>All should be blocked (check console logs)</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="int-t2" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'int-t2')">
+      <div class="test-text">
+        <div class="test-title">Per-class mute blocks only that class</div>
+        <div class="test-steps">
+          <ol>
+            <li>Add 2 classes with same time slot</li>
+            <li>Mute notifications for Class A only</li>
+            <li>During class time, only Class B should send notifications</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="int-t3" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'int-t3')">
+      <div class="test-text">
+        <div class="test-title">Countdown + Quick Actions work together</div>
+        <div class="test-steps">
+          <ol>
+            <li>Add class shown in countdown banner</li>
+            <li>Scroll to class card</li>
+            <li>Click "Test Now" quick action</li>
+            <li>Countdown continues updating after test completes</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="int-t4" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'int-t4')">
+      <div class="test-text">
+        <div class="test-title">Version number is correct everywhere</div>
+        <div class="test-steps">
+          <ol>
+            <li>Check popup header badge: should show "v1.7"</li>
+            <li>Check manifest.json: "version": "1.7"</li>
+            <li>Check chrome://extensions page shows v1.7</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="int-t5" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'int-t5')">
+      <div class="test-text">
+        <div class="test-title">No console errors in popup or background</div>
+        <div class="test-steps">
+          <ol>
+            <li>Open DevTools on popup (right-click icon → Inspect)</li>
+            <li>Open background service worker (chrome://extensions → "service worker")</li>
+            <li>Perform various actions (add class, test, toggle features)</li>
+            <li>Console should show only info/logs, no red errors</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-item" data-test="int-t6" onclick="toggleExpand(this)">
+      <input type="checkbox" class="checkbox" onclick="event.stopPropagation(); markTest(this, 'int-t6')">
+      <div class="test-text">
+        <div class="test-title">Backward compatibility with v1.6 data</div>
+        <div class="test-steps">
+          <ol>
+            <li>If upgrading from v1.6: existing classes should still work</li>
+            <li>New fields default correctly (notificationsEnabled = true)</li>
+            <li>No data loss after upgrade</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const totalTests = 28;
+
+    function toggleExpand(element) {
+      element.classList.toggle('expanded');
+    }
+
+    function markTest(checkbox, testId) {
+      const item = checkbox.closest('.test-item');
+      item.classList.remove('pass', 'fail', 'skip');
+
+      if (checkbox.checked) {
+        const result = prompt('Test result?\n\n✓ = Pass\n✗ = Fail\n⊘ = Skip\n\n(Enter p/f/s or leave empty for pass)');
+
+        if (result === null) {
+          checkbox.checked = false;
+          return;
+        }
+
+        const normalized = result.toLowerCase().trim();
+        if (normalized === 'f' || normalized === 'fail') {
+          item.classList.add('fail');
+        } else if (normalized === 's' || normalized === 'skip') {
+          item.classList.add('skip');
+        } else {
+          item.classList.add('pass');
+        }
+
+        saveTestState(testId, item.className);
+      } else {
+        saveTestState(testId, '');
+      }
+
+      updateStatusBar();
+    }
+
+    function saveTestState(testId, className) {
+      localStorage.setItem(`test-${testId}`, className);
+    }
+
+    function loadTestStates() {
+      document.querySelectorAll('.test-item').forEach(item => {
+        const testId = item.dataset.test;
+        const savedState = localStorage.getItem(`test-${testId}`);
+
+        if (savedState) {
+          item.className = savedState;
+          const checkbox = item.querySelector('.checkbox');
+          if (item.classList.contains('pass') || item.classList.contains('fail') || item.classList.contains('skip')) {
+            checkbox.checked = true;
+          }
+        }
+      });
+      updateStatusBar();
+    }
+
+    function updateStatusBar() {
+      const passed = document.querySelectorAll('.test-item.pass').length;
+      const failed = document.querySelectorAll('.test-item.fail').length;
+      const skipped = document.querySelectorAll('.test-item.skip').length;
+      const completed = passed + failed + skipped;
+
+      document.getElementById('passCount').textContent = passed;
+      document.getElementById('failCount').textContent = failed;
+      document.getElementById('skipCount').textContent = skipped;
+      document.getElementById('totalCount').textContent = `${completed}/${totalTests}`;
+    }
+
+    function resetTests() {
+      if (confirm('Reset all test results?')) {
+        localStorage.clear();
+        document.querySelectorAll('.test-item').forEach(item => {
+          item.classList.remove('pass', 'fail', 'skip', 'expanded');
+          item.querySelector('.checkbox').checked = false;
+        });
+        updateStatusBar();
+      }
+    }
+
+    // Load saved states on page load
+    loadTestStates();
+  </script>
+</body>
+</html>
