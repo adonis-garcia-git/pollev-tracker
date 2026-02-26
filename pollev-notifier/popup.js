@@ -86,9 +86,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Render class list
   renderClassList();
 
-  // Update force check dropdown
-  updateForceCheckDropdown();
-
   // Check tab status
   await checkTabStatus();
 
@@ -121,7 +118,7 @@ function renderClassList() {
     'Wednesday': 'W',
     'Thursday': 'Th',
     'Friday': 'F',
-    'Saturday': 'S',
+    'Saturday': 'Sa',
     'Sunday': 'Su'
   };
 
@@ -318,9 +315,6 @@ function renderClassList() {
       duplicateClass(classId);
     });
   });
-
-  // Update force check dropdown
-  updateForceCheckDropdown();
 }
 
 // Format time from 24h to 12h format
@@ -420,8 +414,8 @@ async function saveClass() {
     .replace('pollev.com/', '')
     .replace(/\/$/, '');
 
-  if (!cleanUsername || cleanUsername.includes('/') || cleanUsername.includes(' ')) {
-    showToast('Invalid username. Enter only the username (e.g., profsmith)', 'error');
+  if (!cleanUsername || !/^[a-zA-Z0-9_-]+$/.test(cleanUsername)) {
+    showToast('Invalid username. Use only letters, numbers, hyphens, and underscores', 'error');
     return;
   }
 
@@ -438,6 +432,29 @@ async function saveClass() {
     return;
   }
 
+  // Validate at least one day selected
+  if (classDays.length === 0) {
+    showToast('Please select at least one class day', 'error');
+    return;
+  }
+
+  // Validate end date is not in the past
+  if (classEndDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(classEndDate + 'T00:00:00');
+    if (endDate < today) {
+      showToast('End date cannot be in the past', 'error');
+      return;
+    }
+  }
+
+  // Preserve existing notificationsEnabled on edit, default to true for new classes
+  const editingClass = currentEditingClassId ? classes.find(c => c.id === currentEditingClassId) : null;
+  const notificationsEnabled = editingClass && editingClass.notificationsEnabled !== undefined
+    ? editingClass.notificationsEnabled
+    : true;
+
   const classData = {
     id: currentEditingClassId || generateUUID(),
     name: name || cleanUsername,
@@ -445,24 +462,39 @@ async function saveClass() {
     classStartTime,
     classEndTime,
     classEndDate,
-    classDays
+    classDays,
+    notificationsEnabled
   };
 
-  if (currentEditingClassId) {
+  const isEditing = !!currentEditingClassId;
+
+  if (isEditing) {
     // Update existing class
     const index = classes.findIndex(c => c.id === currentEditingClassId);
     if (index !== -1) {
       classes[index] = classData;
-      showToast('Class updated!', 'success');
     }
   } else {
     // Add new class
     classes.push(classData);
-    showToast('Class added!', 'success');
   }
 
-  // Save to storage
-  await chrome.storage.sync.set({ classes });
+  // Save to storage — only show success after confirmed
+  try {
+    await chrome.storage.sync.set({ classes });
+    showToast(isEditing ? 'Class updated!' : 'Class added!', 'success');
+  } catch (error) {
+    // Revert in-memory change on failure
+    if (isEditing) {
+      // Reload from storage to revert
+      const result = await chrome.storage.sync.get(['classes']);
+      classes = result.classes || [];
+    } else {
+      classes.pop();
+    }
+    showToast('Failed to save: ' + error.message, 'error');
+    return;
+  }
 
   // Send message to background script to setup alarms
   chrome.runtime.sendMessage({
@@ -588,28 +620,6 @@ async function openPollEvTab(username) {
   });
 }
 
-// Update Force Check dropdown with current classes
-function updateForceCheckDropdown() {
-  const select = document.getElementById('forceCheckClassSelect');
-
-  if (classes.length === 0) {
-    select.innerHTML = '<option value="">No classes configured</option>';
-    select.disabled = true;
-    return;
-  }
-
-  select.disabled = false;
-  select.innerHTML = '<option value="">Select a class...</option>' +
-    classes.map(cls =>
-      `<option value="${cls.id}">${escapeHtml(cls.name || cls.pollEvUsername)}</option>`
-    ).join('');
-
-  // Auto-select first class if only one class
-  if (classes.length === 1) {
-    select.value = classes[0].id;
-  }
-}
-
 // Send message with timeout protection
 function sendMessageWithTimeout(message, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -641,9 +651,7 @@ function handleForceCheckResponse(response, className) {
   } else if (response.status === 'no_content') {
     showToast(prefix + 'No poll detected', 'info');
   } else if (response.status === 'opened_tab') {
-    showToast(prefix + 'Tab opened. Checking in 3 seconds...', 'info');
-    // AUTO-RETRY after tab loads
-    setTimeout(() => retryForceCheck(className), 3000);
+    showToast(prefix + 'Tab opened. Use "Test Now" again after page loads.', 'info');
   } else if (response.status === 'checking') {
     showToast(prefix + 'Loading page, please wait...', 'info');
   } else if (response.status === 'error') {
@@ -653,27 +661,23 @@ function handleForceCheckResponse(response, className) {
   }
 }
 
-// Auto-retry force check after tab opens
-async function retryForceCheck(className) {
-  const select = document.getElementById('forceCheckClassSelect');
-  const selectedClassId = select.value;
-  const cls = classes.find(c => c.id === selectedClassId);
 
-  if (!cls) return;
-
-  try {
-    const response = await sendMessageWithTimeout({
-      type: 'FORCE_CHECK_PAGE',
-      username: cls.pollEvUsername,
-      classId: cls.id,
-      className: cls.name || cls.pollEvUsername
-    }, 10000);
-
-    handleForceCheckResponse(response, cls.name || cls.pollEvUsername);
-  } catch (error) {
-    showToast('Auto-retry failed: ' + error.message, 'error');
+// Escape key closes any open modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modals = [
+      { el: document.getElementById('classModal'), close: closeClassModal },
+      { el: document.getElementById('errorModal'), close: closeErrorModal },
+      { el: document.getElementById('allClassesTodayModal'), close: () => document.getElementById('allClassesTodayModal').classList.add('hidden') }
+    ];
+    for (const modal of modals) {
+      if (!modal.el.classList.contains('hidden')) {
+        modal.close();
+        break;
+      }
+    }
   }
-}
+});
 
 // Add class button
 document.getElementById('addClassButton').addEventListener('click', () => {
@@ -732,6 +736,11 @@ document.getElementById('saveButton').addEventListener('click', async () => {
     return;
   }
 
+  if (ntfyEnabled && !/^[a-zA-Z0-9_-]+$/.test(ntfyTopic)) {
+    showToast('Topic name can only contain letters, numbers, hyphens, and underscores', 'error');
+    return;
+  }
+
   // Show loading state
   saveButton.classList.add('loading');
 
@@ -744,48 +753,6 @@ document.getElementById('saveButton').addEventListener('click', async () => {
   saveButton.classList.remove('loading');
 
   showToast('Settings saved!', 'success');
-});
-
-// Force check button - checks selected class
-document.getElementById('forceCheckButton').addEventListener('click', async () => {
-  if (classes.length === 0) {
-    showToast('Please add a class first', 'error');
-    return;
-  }
-
-  const select = document.getElementById('forceCheckClassSelect');
-  const selectedClassId = select.value;
-
-  if (!selectedClassId) {
-    showToast('Please select a class to check', 'error');
-    return;
-  }
-
-  const cls = classes.find(c => c.id === selectedClassId);
-  if (!cls) {
-    showToast('Selected class not found', 'error');
-    return;
-  }
-
-  // Show loading state
-  const btn = document.getElementById('forceCheckButton');
-  btn.classList.add('loading');
-
-  // Send message with 10 second timeout
-  try {
-    const response = await sendMessageWithTimeout({
-      type: 'FORCE_CHECK_PAGE',
-      username: cls.pollEvUsername,
-      classId: cls.id,
-      className: cls.name || cls.pollEvUsername
-    }, 10000);
-
-    handleForceCheckResponse(response, cls.name || cls.pollEvUsername);
-  } catch (error) {
-    showToast('Force check timed out or failed: ' + error.message, 'error');
-  } finally {
-    btn.classList.remove('loading');
-  }
 });
 
 // Test notification
@@ -1021,22 +988,16 @@ async function updateDndStatus() {
   }
 }
 
-// DND toggle change handler
+// DND toggle change handler — show duration picker first, then activate on selection
 document.getElementById('dndEnabled').addEventListener('change', async (e) => {
   const dndDurationField = document.getElementById('dndDurationField');
   const dndStatus = document.getElementById('dndStatus');
-  const dndDuration = document.getElementById('dndDuration');
 
   if (e.target.checked) {
-    // Immediately activate DND with default duration
-    const duration = parseInt(dndDuration.value);
-    const dndUntil = Date.now() + duration;
-
-    await chrome.storage.local.set({ dndUntil });
-    await updateDndStatus();
-
-    const hours = Math.floor(duration / 3600000);
-    showToast(`Do Not Disturb enabled for ${hours} hour${hours > 1 ? 's' : ''}`, 'success');
+    // Show duration picker — don't activate yet
+    dndDurationField.classList.remove('hidden');
+    dndStatus.classList.add('hidden');
+    showToast('Select a duration to activate Do Not Disturb', 'info');
   } else {
     // Disable DND
     await chrome.storage.local.remove(['dndUntil']);
@@ -1046,7 +1007,7 @@ document.getElementById('dndEnabled').addEventListener('change', async (e) => {
   }
 });
 
-// DND duration change handler
+// DND duration change handler — activates DND with selected duration
 document.getElementById('dndDuration').addEventListener('change', async (e) => {
   const duration = parseInt(e.target.value);
   const dndUntil = Date.now() + duration;
@@ -1130,10 +1091,10 @@ function duplicateClass(classId) {
   const modal = document.getElementById('classModal');
   const modalTitle = document.getElementById('modalTitle');
 
-  // Pre-fill form with existing data
+  // Pre-fill form with existing data (except username, which must be unique)
   modalTitle.textContent = 'Duplicate Class';
   document.getElementById('modalClassName').value = `${cls.name || cls.pollEvUsername} (Copy)`;
-  document.getElementById('modalPollEvUsername').value = cls.pollEvUsername;
+  document.getElementById('modalPollEvUsername').value = '';
   document.getElementById('modalClassStartTime').value = cls.classStartTime || '';
   document.getElementById('modalClassEndTime').value = cls.classEndTime || '';
   document.getElementById('modalClassEndDate').value = cls.classEndDate || '';
@@ -1145,6 +1106,9 @@ function duplicateClass(classId) {
   });
 
   modal.classList.remove('hidden');
+
+  // Focus the username field since user must provide a new one
+  setTimeout(() => document.getElementById('modalPollEvUsername').focus(), 100);
 }
 
 // Countdown timer

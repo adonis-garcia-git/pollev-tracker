@@ -13,7 +13,7 @@
       <h1 class="header-title">PollEv Notifier</h1>
       <p class="header-subtitle">Attendance Tracking</p>
     </div>
-    <span id="versionBadge" class="version-badge">v1.7</span>
+    <span id="versionBadge" class="version-badge">v1.8</span>
   </header>
 
   <!-- Countdown Banner -->
@@ -169,32 +169,15 @@
       <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
-      Save Settings
+      Save Phone Settings
     </button>
 
-    <!-- Force Check Class Selection -->
-    <div class="form-group" style="margin-bottom: var(--space-2);">
-      <label class="form-label" for="forceCheckClassSelect">Class to Check</label>
-      <select id="forceCheckClassSelect" class="form-input">
-        <option value="">Select a class...</option>
-      </select>
-    </div>
-
-    <div class="button-row">
-      <button id="forceCheckButton" class="btn btn-secondary">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"/>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-        </svg>
-        Force Check
-      </button>
-      <button id="testButton" class="btn btn-secondary">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-        </svg>
-        Test Alert
-      </button>
-    </div>
+    <button id="testButton" class="btn btn-secondary" style="width: 100%;">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      Test Alert
+    </button>
   </div>
 
   <!-- Class Modal -->
@@ -238,7 +221,7 @@
             </label>
             <label class="day-pill">
               <input type="checkbox" id="modalDayThursday">
-              <span class="day-pill-label">T</span>
+              <span class="day-pill-label">Th</span>
             </label>
             <label class="day-pill">
               <input type="checkbox" id="modalDayFriday">
@@ -246,11 +229,11 @@
             </label>
             <label class="day-pill">
               <input type="checkbox" id="modalDaySaturday">
-              <span class="day-pill-label">S</span>
+              <span class="day-pill-label">Sa</span>
             </label>
             <label class="day-pill">
               <input type="checkbox" id="modalDaySunday">
-              <span class="day-pill-label">S</span>
+              <span class="day-pill-label">Su</span>
             </label>
           </div>
         </div>
@@ -367,7 +350,7 @@
       <ol class="accordion-list">
         <li><strong>Auto-open:</strong> Opens PollEv tab at class start time</li>
         <li><strong>Time-based:</strong> Only monitors during your class hours</li>
-        <li><strong>Force Check:</strong> See what's currently on the page</li>
+        <li><strong>Test Now:</strong> See what's currently on the page</li>
         <li><strong>Auto-expire:</strong> Stops working after class end date</li>
       </ol>
     </div>

@@ -209,9 +209,14 @@ initialize().then((shouldMonitor) => {
   // Set up periodic checking every 3 seconds (more frequent for reliability)
   checkInterval = setInterval(checkPollStatus, 3000);
 
-  // Also monitor DOM changes for faster detection
+  // Also monitor DOM changes for faster detection (debounced)
+  let mutationTimeout = null;
   const observer = new MutationObserver(() => {
-    checkPollStatus();
+    if (mutationTimeout) return;
+    mutationTimeout = setTimeout(() => {
+      mutationTimeout = null;
+      checkPollStatus();
+    }, 500);
   });
 
   observer.observe(document.body, {

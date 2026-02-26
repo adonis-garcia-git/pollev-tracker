@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# PollEv Notifier v1.7 - Extension Validation Script
+# PollEv Notifier v1.8 - Extension Validation Script
 # Checks file integrity, syntax, and requirements
 
-echo "🔍 PollEv Notifier v1.7 - Validation Script"
+echo "🔍 PollEv Notifier v1.8 - Validation Script"
 echo "=========================================="
 echo ""
 
@@ -109,8 +109,8 @@ echo ""
 
 echo "🏷️  Checking Version Numbers"
 echo "---------------------------"
-check_string "manifest.json" '"version": "1.7"' "Version 1.7 in manifest"
-check_string "popup.html" 'v1.7' "Version badge v1.7"
+check_string "manifest.json" '"version": "1.8"' "Version 1.8 in manifest"
+check_string "popup.html" 'v1.8' "Version badge v1.8"
 echo ""
 
 echo "✨ Checking Feature #1 (Error Visibility)"
