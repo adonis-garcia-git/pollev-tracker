@@ -3,7 +3,7 @@
 Never miss attendance again.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue)
-![Version](https://img.shields.io/badge/version-1.7-green)
+![Version](https://img.shields.io/badge/version-1.8-green)
 
 A modern Chrome extension that monitors PollEv for new polls and notifies your laptop + phone instantly. Features a clean, minimal UI with iOS-style toggles, pill-shaped day selectors, toast notifications, and support for multiple classes.
 
@@ -185,6 +185,14 @@ Click the extension icon to configure:
 | Test notification | Verify setup works |
 
 ## Changelog
+
+### v1.8
+- Quick "Test Now" action on each class card (replaces old Force Check button)
+- Do Not Disturb mode with configurable duration and countdown banner
+- Next-class countdown timer with "all classes today" modal
+- Stricter form validation: username, Ntfy topic, required days, end-date checks
+- Escape key closes any open modal; day label fixes (Th, Sa, Su)
+- Content script optimization: debounced DOM observer to reduce excessive polling
 
 ### v1.7
 - Enhanced error visibility: auto-opening error modal on test failures
